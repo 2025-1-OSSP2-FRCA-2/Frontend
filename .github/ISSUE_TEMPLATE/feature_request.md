@@ -2,7 +2,7 @@
 name: 💡 기능 제안
 about: 새로운 기능이나 개선점을 제안해주세요
 title: "[FEAT] "
-labels: enhancement sssssss
+labels: enhancement 
 assignees: ''
 
 ---
