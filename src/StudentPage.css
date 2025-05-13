@@ -1,0 +1,27 @@
+.student-page {
+    background-color: #222831;
+    margin: 0px;
+    padding-top: 70px;      /* TopBar 높이만큼 추가 */
+    padding-bottom: 130px;  /* BottomBar 높이 */
+    height: calc(100vh - 70px - 130px);
+}
+
+
+.video-container {
+    position: relative;
+    width: auto;         /* 비율 박스 제거 */
+    max-width: none;
+    margin: 0 auto;
+    margin-top: 24px; /* 위 여백 보기 좋게 조정함 */
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.student-page video {
+    width: 1050px;        /* 원하는 가로 크기 */
+    height: 506px;       /* 원하는 세로 크기 */
+    object-fit: cover;   /* 또는 contain */
+    border-radius: 8px;
+}
