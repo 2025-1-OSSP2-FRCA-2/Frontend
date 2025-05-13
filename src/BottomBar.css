@@ -1,0 +1,75 @@
+.bottom-bar {
+    display: flex;
+    align-items: center;
+    background: #171B21;
+    height: 130px;
+    justify-content: space-between; /* 좌우로 분리 */
+    position: fixed;   
+
+    padding: 0px;                /* 좌우 여백 */
+    margin-bottom: 0px;
+    margin-top: 0px;
+    right: 0;              /* 추가 */
+    left: 0;              /* 추가 */
+    bottom: 0;            /* 추가 */
+    width: 100%;          /* 추가 */
+    z-index: 200;         /* (선택) 다른 요소 위에 보이게 */
+}
+
+.controls {
+    display: flex;
+    gap: 40px;
+}
+
+.control-mic,
+.control-video {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px; /* 고정 */
+    margin-left: 40px;
+}
+
+.control-exit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 80px; /* 원하는 만큼 여백 */
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 2rem;
+    display: grid;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.exit-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 2rem;
+    display: grid;
+    cursor: pointer;
+    margin: 0px;
+    padding: 0px;
+}
+
+
+.mic-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ccc;
+}
+  
+.video-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ccc;
+}
+  
+  
