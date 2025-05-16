@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import StudentPage from './StudentPage';
+import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-
-  <StudentPage />
-
+  <App />
 );

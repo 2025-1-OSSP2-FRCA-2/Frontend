@@ -5,11 +5,13 @@ interface TopBarProps {
     connected: boolean;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ connected }) => {
+const TopBar = ({ 
+    connected 
+}: TopBarProps) => {
     return (
         <div className="top-bar">
             <span className={`status-dot ${connected ? "online" : "offline"}`}></span>
-            <span className="status-text">
+            <span className={`status-text ${connected ? "online" : "offline"}`}>
                 연결 상태 : {connected ? "연결됨" : "연결 끊김"}
             </span>
         </div>
