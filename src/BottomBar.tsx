@@ -5,6 +5,7 @@ import videoOnImage from "./assets/video_on.svg"
 import micOffImage from "./assets/mic_off.svg"
 import micOnImage from "./assets/mic_on.svg"
 import exitImage from "./assets/종료 버튼.svg"
+import { useNavigate } from "react-router-dom";
 
 interface BottomBarProps {
     micOn: boolean;
@@ -14,13 +15,21 @@ interface BottomBarProps {
     onExit: () => void;
 }
 
-const BottomBar: React.FC<BottomBarProps> = ({
+const BottomBar = ({
     micOn,
     videoOn,
     onToggleMic,
     onToggleVideo,
     onExit,
-}) => {
+}: BottomBarProps) => {
+    
+    const navigate = useNavigate();
+
+    const handleExit = () => {
+        onExit();
+        navigate("/login");
+    };
+    
     return (
         <div className="bottom-bar">
             <div className="controls">
@@ -43,7 +52,7 @@ const BottomBar: React.FC<BottomBarProps> = ({
             
 
             <div className="control-exit">        
-                <button className="exit-btn" onClick={onExit}>
+                <button className="exit-btn" onClick={handleExit}>
                     <img src={exitImage} alt="exit" />
                 </button>
             </div>

@@ -1,0 +1,80 @@
+.waiting-page {
+    background-color: #222831;
+    height: calc(100vh - 70px - 130px);
+    padding-top: 70px;      /* TopBar 높이 */
+    padding-bottom: 130px;  /* BottomBar 높이 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .waiting-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .waiting-title {
+    color: #bbb;
+    font-size: 2.5rem;
+    font-weight: 400;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .waiting-title .bold {
+    font-weight: 700;
+    color: #fff;
+  }
+  
+  .waiting-dots {
+    color: #888;
+    font-size: 2rem;
+    letter-spacing: 8px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .waiting-dots span {
+    animation: blink 1.4s infinite both;
+  }
+
+  .waiting-dots span:nth-child(1) {
+      animation-delay: 0s;
+  }
+  .waiting-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+  }
+  .waiting-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+  }
+  .waiting-dots span:nth-child(4) {
+      animation-delay: 0.6s;
+  }
+  .waiting-dots span:nth-child(5) {
+      animation-delay: 0.8s;
+  }
+  .waiting-dots span:nth-child(6) {
+      animation-delay: 1s;
+  }
+  .waiting-dots span:nth-child(7) {
+      animation-delay: 1.2s;
+  }
+
+  @keyframes blink {
+    0%, 20%, 100% {
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 1;
+    }
+  }
+  
+  .waiting-desc {
+    color: #aaa;
+    font-size: 1.2rem;
+    text-align: center;
+  }

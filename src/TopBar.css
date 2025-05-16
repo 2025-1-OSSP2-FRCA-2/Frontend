@@ -29,7 +29,14 @@
     background: #ff4444;
 }
 
+.status-text.online {
+    color: #44ff44; /* 초록 */
+}
+
+.status-text.offline {
+    color: #ff4444; /* 빨강 */
+}
+
 .status-text {
-    color: #ff4444;
     font-weight: bold;
 }
