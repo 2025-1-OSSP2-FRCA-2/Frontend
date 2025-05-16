@@ -13,7 +13,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/student" element={<StudentPage />} />
         <Route path="/waiting" element={<WaitingPage onExit={() => {}} connected={false} />} />
-        <Route path="/prof" element={<ProfPage />} />
+        <Route path="/prof" element={<ProfPage onExit={() => {}} connected={false} />} />
       </Routes>
     </BrowserRouter>
   );
