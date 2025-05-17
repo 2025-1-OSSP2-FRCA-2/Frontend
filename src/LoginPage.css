@@ -133,6 +133,14 @@
   color: #cccccc; 
 }
 
+input[type="password"]::-webkit-password-toggle-button {
+    display: none;
+}
+
+input[type="password"]::-ms-reveal {
+    display: none;
+}
+
 .password-eye-icon {
   margin-top: 21px;
   margin-right: 10px;
