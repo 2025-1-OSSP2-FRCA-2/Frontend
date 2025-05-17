@@ -5,11 +5,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: #222831;
+    background: #242525;
 }
 
 .login-content {
-    background: #393e46;
+    background: #171717;
     padding: 40px 32px;
     border-radius: 16px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.15);
@@ -19,7 +19,7 @@
 }
 
 .login-content button {
-    background: #00adb5;
+    background: #010101;
     color: #fff;
     border: none;
     border-radius: 8px;

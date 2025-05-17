@@ -1,10 +1,9 @@
 .top-bar {
     display: flex;
     align-items: center;
-    background: #171B21;
+    background: #171717;
     height: 70px;
 
-    position: fixed;   /* 추가 */
     top: 0;            /* 추가 */
     left: 0;           /* 추가 */
     width: 100%;       /* 추가 */
@@ -39,4 +38,13 @@
 
 .status-text {
     font-weight: bold;
+}
+
+.top-bar-time {
+    font-size: 1.2rem;
+    font-weight: normal;
+    margin-right: 50px;
+    margin-left: 10px;
+    color: #ccc;
+    margin-left: auto; /* 오른쪽에 배치 */
 }
