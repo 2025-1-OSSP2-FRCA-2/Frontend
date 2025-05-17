@@ -14,7 +14,7 @@ const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const [hidePassword, setHidePassword] = useState(true);
 
     const handleLogin = () => {
         if (email === "admin@example.com" && password === "admin123") {
@@ -26,7 +26,7 @@ const LoginPage = () => {
         }
     };
 
-    const toggleShowPassword = () => setShowPassword(prev => !prev);
+    const toggleShowPassword = () => setHidePassword(prev => !prev);
 
     return (
         <div className="login-page-container">
@@ -47,15 +47,15 @@ const LoginPage = () => {
                 <div className="password-input-wrapper">
                     <img src={PasswordIcon} alt="password" className="password-icon" />
                         <input
-                            type={showPassword ? "password" : "text"}
+                            type={hidePassword ? "password" : "text"}
                             placeholder="Password"
                             className="password-input"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <img
-                            src={showPassword ? EyeClosed : EyeOpen}
-                            alt={showPassword ? "Hide password" : "Show password"}
+                            src={hidePassword ? EyeClosed : EyeOpen}
+                            alt={hidePassword ? "Hide password" : "Show password"}
                             className="password-eye-icon"
                             onClick={toggleShowPassword}
                         />
