@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TopBar from "./TopBar";
 import BottomBar from "./BottomBar";
 import "./StudentPage.css";
+import studentImage from "./assets/student.svg";
 
 // 학생 페이지 컴포넌트
 const StudentPage = () => {
@@ -20,6 +21,22 @@ const StudentPage = () => {
   const [connected, setConnected] = useState(false);
   const [micOn, setMicOn] = useState(false); // 마이크가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
   const [videoOn, setVideoOn] = useState(false); // 비디오가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
+
+  useEffect(() => {
+    // videoOn이 true이고 videoRef가 존재하고 stream도 존재하면 srcObject 재연결
+    if (videoOn && videoRef.current && videoTrackRef.current) {
+      const stream = new MediaStream();
+      stream.addTrack(videoTrackRef.current);
+      if (audioTrackRef.current) {
+        stream.addTrack(audioTrackRef.current); // 오디오도 함께 연결할 수 있음
+      }
+  
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch((err) => {
+        console.error("비디오 재생 실패:", err);
+      });
+    }
+  }, [videoOn]);
 
   useEffect(() => {
 
@@ -111,7 +128,18 @@ const StudentPage = () => {
     <div className="student-page">
       <TopBar connected={connected} />
       <div className="video-container">
-        <video ref={videoRef} autoPlay muted={!micOn} />
+        {videoOn ? (
+          <video ref={videoRef} autoPlay muted />
+        ) : (
+          <div className="video-off-overlay">
+            <div className="video-off-icon">
+              {/* SVG 아이콘 또는 이미지 사용 */}
+              <img src={studentImage} alt="student" />
+            </div>
+            <div className="video-off-text">카메라가 꺼져 있습니다</div>
+            <button className="video-on-btn" onClick={handleToggleVideo}>카메라 켜기</button>
+          </div>
+        )}      
       </div>
       <BottomBar
         micOn={micOn}

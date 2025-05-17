@@ -1,13 +1,19 @@
+.waiting-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .waiting-page {
-    background-color: #222831;
-    height: calc(100vh - 70px - 130px);
-    padding-top: 70px;      /* TopBar 높이 */
-    padding-bottom: 130px;  /* BottomBar 높이 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #242525;
+  overflow: hidden;
+}
+
   
   .waiting-center {
     flex: 1;

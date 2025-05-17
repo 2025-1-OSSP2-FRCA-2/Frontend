@@ -24,10 +24,14 @@ const ProfPage = ({
     }, [connected, navigate]);
 
     return (
-        <div>
+        <div className="prof-root">
             <TopBar connected={connected} />
-            <div className="prof-page-content">
-                나중에 구현
+            <div className="prof-page">
+                <div className="prof-center">
+                    <div className="prof-title">
+                        교수자 페이지 (나중에 구현)
+                    </div>
+                </div>
             </div>
             <BottomBar
                 micOn={false}
@@ -37,11 +41,7 @@ const ProfPage = ({
                 onExit={onExit}
             />
         </div>
-
     );
 };
 
 export default ProfPage;
-
-
-
