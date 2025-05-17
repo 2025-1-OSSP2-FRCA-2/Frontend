@@ -9,6 +9,8 @@ import studentImage from "./assets/student.svg";
 const StudentPage = () => {
   // video 태그를 참조하기 위한 useRef (웹캠 영상 출력)
   const videoRef = useRef<HTMLVideoElement>(null);
+  // audio 태그를 참조하기 위한 useRef (오디오 출력)
+  const audioRef = useRef<HTMLAudioElement>(null);
   // 캔버스는 video로부터 프레임을 캡처하기 위한 도구
   const canvas = document.createElement("canvas");
   // 실제 마이크(오디오) 트랙을 저장하는 ref
@@ -30,13 +32,24 @@ const StudentPage = () => {
       if (audioTrackRef.current) {
         stream.addTrack(audioTrackRef.current); // 오디오도 함께 연결할 수 있음
       }
-  
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch((err) => {
         console.error("비디오 재생 실패:", err);
       });
     }
   }, [videoOn]);
+
+  // micOn이 true일 때 비디오 연결
+  useEffect(() => {
+    if (micOn && audioTrackRef.current && audioRef.current) {
+      const stream = new MediaStream();
+      stream.addTrack(audioTrackRef.current);
+      audioRef.current.srcObject = stream;
+      audioRef.current.play().catch((err) =>
+        console.error("오디오 재생 실패:", err)
+      );
+    }
+  }, [micOn]);
 
   useEffect(() => {
 
@@ -128,8 +141,9 @@ const StudentPage = () => {
     <div className="student-page">
       <TopBar connected={connected} />
       <div className="video-container">
+        <audio ref={audioRef} autoPlay />
         {videoOn ? (
-          <video ref={videoRef} autoPlay muted />
+          <video ref={videoRef} autoPlay />
         ) : (
           <div className="video-off-overlay">
             <div className="video-off-icon">
