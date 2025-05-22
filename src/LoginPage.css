@@ -5,7 +5,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: #222831;
+    background: #242525;
 }
 
 .title {
@@ -15,7 +15,7 @@
   height: 75px;
   flex-shrink: 0;
 
-  color: #EEF7FF;
+  color: #fff;
 
   font-family: 'Inter', sans-serif;
   font-size: 80px;
@@ -41,7 +41,7 @@
   flex-shrink: 0;
 
   border-radius: 40px;
-  background: #344C64;
+  background: #010101;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 
   color: white;
@@ -55,7 +55,7 @@
 }
 
 .email-input-wrapper:focus-within{
-  box-shadow: 0 0 0 3px #C0C0C0;
+  box-shadow: 0 0 0 3px #fff;
   border-radius: 40px;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .email-input::placeholder {
-  color: #cccccc; 
+  color: #fff; 
 }
 
 .password-input-wrapper {
@@ -91,7 +91,7 @@
   flex-shrink: 0;
 
   border-radius: 40px;
-  background: #344C64;
+  background: #010101;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 
   color: white;
@@ -105,7 +105,7 @@
 }
 
 .password-input-wrapper:focus-within{
-  box-shadow: 0 0 0 3px #C0C0C0;
+  box-shadow: 0 0 0 3px #fff;
   border-radius: 40px;
 }
 
@@ -130,7 +130,7 @@
 }
 
 .password-input::placeholder {
-  color: #cccccc; 
+  color: #fff; 
 }
 
 input[type="password"]::-webkit-password-toggle-button {
@@ -162,21 +162,21 @@ input[type="password"]::-ms-reveal {
 
   border: none;
   border-radius: 40px;
-  background: #C0C9D1;
+  background: #80858a;
 
   font-size: 20px;
   font-weight: bold;
-  color: #222831;
+  color: #fff;
 
   cursor: pointer;
 }
 
 .login-button:hover {
-  background: #b0b8c0;
+  background: #010101;
 }
 
 .login-text {
-  color: #435F74;
+  color: #fff;
   font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-style: normal;
@@ -203,12 +203,12 @@ input[type="password"]::-ms-reveal {
 
 
 .login-button:active {
-  background: #344C64;
-  color: #F3F3F3;
+  background: #010101;
+  color: #fff;
 }
 
 .login-button:active .login-text{
-    color: #F3F3F3;
+    color: #fff;
 }
 
 .login-button:active .arrow-default {
