@@ -14,6 +14,8 @@
     align-items: center;
     min-height: 0;         /* flex item이 컨테이너를 넘어가지 않도록 설정 */
     position: relative;
+    border: 4px solid transparent;
+    transition: border-color 0.3s ease;
 }
 
 .student-page video {
@@ -25,8 +27,14 @@
     border-radius: 8px;
     background: #000;      /* 비디오가 없을 때 검은 배경 */
     transform: scaleX(-1); /* 좌우반전 */
+    border: 4px solid transparent;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.student-page video.warning-active {
+    border-color: #ff4444;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+}
 
 .video-off-overlay {
     width: 80%;
@@ -39,6 +47,13 @@
     align-items: center;
     background: #010101;
     border-radius: 16px;
+    border: 4px solid transparent;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.video-off-overlay.warning-active {
+    border-color: #ff4444;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
 }
 
 .video-off-icon {
@@ -64,4 +79,62 @@
 }
 .video-on-btn:hover {
     background: #b94a4a;
+}
+
+.focus-warning-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1001;
+    background-color: #ff4444;
+    color: white;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease-out;
+    min-width: 200px;
+}
+
+.focus-warning-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.focus-warning-icon {
+    font-size: 24px;
+}
+
+.focus-warning-text {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.focus-warning-dismiss {
+    background-color: white;
+    color: #ff4444;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    transition: background-color 0.3s;
+}
+
+.focus-warning-dismiss:hover {
+    background-color: #f0f0f0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
 }

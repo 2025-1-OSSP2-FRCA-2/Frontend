@@ -40,6 +40,8 @@ const StudentPage = () => {
   const [videoOn, setVideoOn] = useState(false);
   // 학생 ID를 저장하는 state
   const [studentId, setStudentId] = useState<string>('');
+  // 집중력 경고 상태를 관리하는 state
+  const [isFocusWarningOn, setIsFocusWarningOn] = useState(false);
   
   // 사용자 인증 체크를 위한 useEffect
   useEffect(() => {
@@ -82,7 +84,8 @@ const StudentPage = () => {
                 setConnected(false);
                 break;
               case "warning":
-                alert(data.message);
+                console.log('경고 메시지 수신');
+                setIsFocusWarningOn(true);
                 break;
             }
           };
@@ -132,7 +135,7 @@ const StudentPage = () => {
           }, "image/jpeg");
         };
         
-        interval = setInterval(sendFrame, 100); // 100ms마다 프레임 전송
+        interval = setInterval(sendFrame, 1000); // 1000ms마다 프레임 전송
       } catch (error) {
         console.error("Error accessing webcam/microphone:", error);
         alert("웹캠/마이크 접근에 실패했습니다.");
@@ -209,12 +212,26 @@ const StudentPage = () => {
   return (
     <div className="student-page">
       <TopBar connected={connected} />
-      <div className="video-container">
+      {isFocusWarningOn && (
+        <div className="focus-warning-box">
+          <div className="focus-warning-content">
+            <span className="focus-warning-icon">⚠️</span>
+            <span className="focus-warning-text">집중력이 매우 낮습니다.</span>
+            <button 
+              className="focus-warning-dismiss"
+              onClick={() => setIsFocusWarningOn(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+      <div className={`video-container`}>
         <audio ref={audioRef} autoPlay />
         {videoOn ? (
-          <video ref={videoRef} autoPlay />
+          <video ref={videoRef} autoPlay className={isFocusWarningOn ? 'warning-active' : ''} />
         ) : (
-          <div className="video-off-overlay">
+          <div className={`video-off-overlay ${isFocusWarningOn ? 'warning-active' : ''}`}>
             <div className="video-off-icon">
               {/* SVG 아이콘 또는 이미지 사용 */}
               <img src={studentImage} alt="student" />
