@@ -8,13 +8,42 @@ import EyeOpen from "./assets/eye_open.svg";
 import EyeClosed from "./assets/eye_close.svg";
 import { useState } from "react";
 
-
 const LoginPage = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(false);
     const [hidePassword, setHidePassword] = useState(true);
+
+    const checkTeacherConnection = (studentId: string) => {
+        const ws = new WebSocket(`ws://localhost:8000/ws/check_connection`);
+        
+        ws.onopen = () => {
+            console.log('Checking teacher connection status...');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Connection status:', data);
+            
+            if (data.teacher_connected) {
+                navigate("/student");
+            } else {
+                navigate("/waiting");
+            }
+            ws.close();
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            alert('서버 연결에 실패했습니다.');
+            ws.close();
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+        };
+    };
 
     const handleLogin = () => {
         if (email === "admin@example.com" && password === "admin123") {
@@ -31,21 +60,21 @@ const LoginPage = () => {
                 email: email,
                 role: 'student'
             }));
-            navigate("/student");
+            checkTeacherConnection('1');
         } else if (email === "student2@example.com" && password === "student123") {
             localStorage.setItem('user', JSON.stringify({
                 id: '2',
                 email: email,
                 role: 'student'
             }));
-            navigate("/student");
+            checkTeacherConnection('2');
         } else if (email === "student3@example.com" && password === "student123") {
             localStorage.setItem('user', JSON.stringify({
                 id: '3',
                 email: email,
                 role: 'student'
             }));
-            navigate("/student");
+            checkTeacherConnection('3');
         } else {
             setError(true); 
         }

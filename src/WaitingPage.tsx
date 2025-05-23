@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import TopBar from "./TopBar";
 import BottomBar from "./BottomBar";
 import "./WaitingPage.css";
@@ -13,19 +13,61 @@ const WaitingPage = ({
     onExit, 
     connected 
 }: WaitingPageProps) => {
-    
     const navigate = useNavigate();
+    const [isConnected, setIsConnected] = useState(connected);
 
-    React.useEffect(() => {
-        if (connected) {
-            onExit();
-            navigate("/student");
+    useEffect(() => {
+        // 사용자 정보 가져오기
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role !== 'student') {
+            navigate('/login');
+            return;
         }
-    }, [connected, navigate]);
+
+        // WebSocket 연결 설정
+        const ws = new WebSocket(`ws://localhost:8000/ws/student/${user.id}`);
+        
+        ws.onopen = () => {
+            console.log('WebSocket 연결됨 (WaitingPage)');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('서버로부터 메시지 수신:', data);
+            
+            if (data.type === "teacher_connected") {
+                console.log('선생님 연결됨 - 학생 페이지로 이동');
+                setIsConnected(true);
+                // WebSocket 연결을 StudentPage로 전달
+                navigate("/student", { state: { ws } });
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket 에러:', error);
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket 연결 종료');
+        };
+
+        // 컴포넌트 언마운트 시 WebSocket 연결 종료 (StudentPage로 전달되지 않은 경우에만)
+        return () => {
+            if (!isConnected) {
+                ws.close();
+            }
+        };
+    }, [navigate, isConnected]);
+
+    useEffect(() => {
+        if (isConnected) {
+            onExit();
+        }
+    }, [isConnected, onExit]);
 
     return (
         <div className="waiting-root">
-            <TopBar connected={connected} />
+            <TopBar connected={isConnected} />
             <div className="waiting-page">
                 <div className="waiting-center">
                     <div className="waiting-title">
