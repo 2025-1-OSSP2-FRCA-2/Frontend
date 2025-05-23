@@ -46,15 +46,14 @@ const LoginPage = () => {
     };
 
     const handleLogin = () => {
-        if (email === "admin@example.com" && password === "admin123") {
-            // 교수자 정보 저장
+        if (email === "1" && password === "1") {
             localStorage.setItem('user', JSON.stringify({
                 id: 'admin',
                 email: email,
                 role: 'teacher'
             }));
             navigate("/prof");
-        } else if (email === "student1@example.com" && password === "student123") {
+        } else if (email === "111" && password === "111") {
             localStorage.setItem('user', JSON.stringify({
                 id: '1',
                 email: email,

@@ -58,7 +58,7 @@ const ProfPage = () => {
                     }
                 };
 
-                ws.onclose = () => {
+                ws.onclose = () => {    
                     console.log('WebSocket 연결 종료');
                     setConnected(false); // 연결 상태 업데이트
                 };

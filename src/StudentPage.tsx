@@ -5,8 +5,9 @@ import BottomBar from "./BottomBar";
 import "./StudentPage.css";
 import studentImage from "./assets/student.svg";
 
+// LocationState 인터페이스 정의: studentId를 포함
 interface LocationState {
-    ws?: WebSocket;
+    studentId: string;
 }
 
 // 학생 페이지 컴포넌트
@@ -21,53 +22,52 @@ const StudentPage = () => {
   const audioTrackRef = useRef<MediaStreamTrack | null>(null);
   // 실제 비디오 트랙을 저장하는 ref
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
+  // WebSocket 연결을 저장하는 ref
   const wsRef = useRef<WebSocket | null>(null);
 
+  // 페이지 이동을 위한 navigate 함수
   const navigate = useNavigate();
+  // 현재 위치 정보를 가져오기 위한 location
   const location = useLocation();
+  // location의 상태를 LocationState로 캐스팅
   const locationState = location.state as LocationState;
 
+  // 연결 상태를 관리하는 state
   const [connected, setConnected] = useState(false);
-  const [micOn, setMicOn] = useState(false); // 마이크가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
-  const [videoOn, setVideoOn] = useState(false); // 비디오가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
+  // 마이크 상태를 관리하는 state
+  const [micOn, setMicOn] = useState(false);
+  // 비디오 상태를 관리하는 state
+  const [videoOn, setVideoOn] = useState(false);
+  // 학생 ID를 저장하는 state
+  const [studentId, setStudentId] = useState<string>('');
   
-  const [studentId] = useState(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.role !== 'student') {
-      // 학생이 아닌 경우 로그인 페이지로 리다이렉트
-      navigate('/login');
-      return '';
-    }
-    console.log('학생 ID:', user.id); // 학생 ID 로깅
-    return user.id;
-  });
-
+  // 사용자 인증 체크를 위한 useEffect
   useEffect(() => {
-    // studentId가 없으면 (학생이 아닌 경우) 실행하지 않음
-    if (!studentId) return;
+    if (!locationState?.studentId) {
+      navigate('/login'); // studentId가 없으면 로그인 페이지로 이동
+      return;
+    }
+    setStudentId(locationState.studentId); // studentId 설정
+  }, [navigate, locationState]);
 
-    let stream: MediaStream | null = null;
-    let interval: number | null = null;
+  // WebSocket 및 미디어 스트림 설정을 위한 useEffect
+  useEffect(() => {
+    if (!studentId) return; // studentId가 없으면 실행하지 않음
 
+    let stream: MediaStream | null = null; // 미디어 스트림을 저장할 변수
+    let interval: number | null = null; // 프레임 전송 간격을 저장할 변수
+
+    // WebSocket 및 미디어 스트림 설정 함수
     const setup = async () => {
       try {
-        // WaitingPage에서 전달받은 WebSocket 연결이 있으면 사용
-        if (locationState?.ws) {
-          console.log('기존 WebSocket 연결 사용');
-          wsRef.current = locationState.ws;
-          setConnected(true);
-        } else {
-          // 새로운 WebSocket 연결 생성
-          console.log('새로운 WebSocket 연결 생성');
-          wsRef.current = new WebSocket(`ws://localhost:8000/ws/student/${studentId}`);
-          
-          wsRef.current.onopen = () => {
-            console.log(`WebSocket 연결됨 (학생 ID: ${studentId})`);
-            setConnected(true);
-          };
-        }
+        console.log('새로운 WebSocket 연결 생성');
+        wsRef.current = new WebSocket(`ws://localhost:8000/ws/student/${studentId}`);
+        
+        wsRef.current.onopen = () => {
+          console.log(`WebSocket 연결됨 (학생 ID: ${studentId})`);
+          setConnected(true); // 연결 상태 업데이트
+        };
 
-        // WebSocket 이벤트 핸들러 설정
         if (wsRef.current) {
           wsRef.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -93,14 +93,14 @@ const StudentPage = () => {
           };
         }
 
-        // 미디어 스트림 설정
-        await setupMediaStream();
+        await setupMediaStream(); // 미디어 스트림 설정
       } catch (error) {
         console.error("Error connecting to server:", error);
         alert("서버 연결에 실패했습니다.");
       }
     };
 
+    // 미디어 스트림 설정 함수
     const setupMediaStream = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -117,6 +117,7 @@ const StudentPage = () => {
         videoTrackRef.current = videoTrack;
         if (videoTrack) videoTrack.enabled = videoOn;
 
+        // 비디오 프레임을 주기적으로 전송하는 함수
         const sendFrame = () => {
           if (!videoRef.current || wsRef.current?.readyState !== WebSocket.OPEN) return;
           const ctx = canvas.getContext("2d");
@@ -131,32 +132,32 @@ const StudentPage = () => {
           }, "image/jpeg");
         };
         
-        interval = setInterval(sendFrame, 100);
+        interval = setInterval(sendFrame, 100); // 100ms마다 프레임 전송
       } catch (error) {
         console.error("Error accessing webcam/microphone:", error);
         alert("웹캠/마이크 접근에 실패했습니다.");
       }
     };
 
-    setup();
+    setup(); // 설정 함수 호출
 
+    // 컴포넌트 언마운트 시 정리 작업
     return () => {
       if (interval) clearInterval(interval);
       if (stream) stream.getTracks().forEach((track) => track.stop());
-      // WaitingPage에서 전달받은 WebSocket이 아닌 경우에만 연결 종료
-      if (wsRef.current && !locationState?.ws) {
+      if (wsRef.current) {
         wsRef.current.close();
       }
     };
-  }, [studentId, navigate, locationState]);
+  }, [studentId]);
 
+  // 비디오 상태 변경 시 미디어 스트림 업데이트
   useEffect(() => {
-    // videoOn이 true이고 videoRef가 존재하고 stream도 존재하면 srcObject 재연결
     if (videoOn && videoRef.current && videoTrackRef.current) {
       const stream = new MediaStream();
       stream.addTrack(videoTrackRef.current);
       if (audioTrackRef.current) {
-        stream.addTrack(audioTrackRef.current); // 오디오도 함께 연결할 수 있음
+        stream.addTrack(audioTrackRef.current);
       }
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch((err) => {
@@ -165,7 +166,7 @@ const StudentPage = () => {
     }
   }, [videoOn]);
 
-  // micOn이 true일 때 비디오 연결
+  // 마이크 상태 변경 시 오디오 스트림 업데이트
   useEffect(() => {
     if (micOn && audioTrackRef.current && audioRef.current) {
       const stream = new MediaStream();
@@ -177,6 +178,7 @@ const StudentPage = () => {
     }
   }, [micOn]);
 
+  // 마이크 상태 토글 함수
   const handleToggleMic = () => {
     setMicOn((prev) => {
       const newState = !prev;
@@ -187,6 +189,7 @@ const StudentPage = () => {
     });
   };
 
+  // 비디오 상태 토글 함수
   const handleToggleVideo = () => {
     setVideoOn((prev) => {
       const newState = !prev;
@@ -197,8 +200,8 @@ const StudentPage = () => {
     });
   };
 
+  // 페이지 종료 시 호출되는 함수
   const handleExit = () => {
-    // 페이지 이동 또는 상태 변경 등
     navigate("/login");
   };
 

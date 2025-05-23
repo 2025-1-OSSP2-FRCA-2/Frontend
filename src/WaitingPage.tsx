@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import TopBar from "./TopBar";
 import BottomBar from "./BottomBar";
 import "./WaitingPage.css";
@@ -15,6 +15,7 @@ const WaitingPage = ({
 }: WaitingPageProps) => {
     const navigate = useNavigate();
     const [isConnected, setIsConnected] = useState(connected);
+    const wsRef = useRef<WebSocket | null>(null);
 
     useEffect(() => {
         // 사용자 정보 가져오기
@@ -25,13 +26,13 @@ const WaitingPage = ({
         }
 
         // WebSocket 연결 설정
-        const ws = new WebSocket(`ws://localhost:8000/ws/student/${user.id}`);
+        wsRef.current = new WebSocket(`ws://localhost:8000/ws/student/${user.id}`);
         
-        ws.onopen = () => {
+        wsRef.current.onopen = () => {
             console.log('WebSocket 연결됨 (WaitingPage)');
         };
 
-        ws.onmessage = (event) => {
+        wsRef.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
             console.log('서버로부터 메시지 수신:', data);
             
@@ -39,25 +40,28 @@ const WaitingPage = ({
                 console.log('선생님 연결됨 - 학생 페이지로 이동');
                 setIsConnected(true);
                 // WebSocket 연결을 StudentPage로 전달
-                navigate("/student", { state: { ws } });
+                // navigate("/student", { state: { ws: wsRef.current } });
+                
+                // ✅ WebSocket 넘기지 말고 studentId만 전달
+    navigate("/student", { state: { studentId: user.id } });
             }
         };
 
-        ws.onerror = (error) => {
+        wsRef.current.onerror = (error) => {
             console.error('WebSocket 에러:', error);
         };
 
-        ws.onclose = () => {
+        wsRef.current.onclose = () => {
             console.log('WebSocket 연결 종료');
         };
 
         // 컴포넌트 언마운트 시 WebSocket 연결 종료 (StudentPage로 전달되지 않은 경우에만)
         return () => {
-            if (!isConnected) {
-                ws.close();
+            if (wsRef.current && !isConnected) {
+                wsRef.current.close();
             }
         };
-    }, [navigate, isConnected]);
+    }, [navigate]); // isConnected 의존성 제거
 
     useEffect(() => {
         if (isConnected) {
