@@ -21,16 +21,17 @@ const StudentPage = () => {
   const navigate = useNavigate();
 
   const [connected, setConnected] = useState(false);
-  const [micOn, setMicOn] = useState(false); // 마이크가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
-  const [videoOn, setVideoOn] = useState(false); // 비디오가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
+  const [micOn, setMicOn] = useState(false);
+  const [videoOn, setVideoOn] = useState(false);
+  const [isFocusWarningOn, setIsFocusWarningOn] = useState(false);
 
+  // videoOn이 true이고 videoRef가 존재하고 stream도 존재하면 srcObject 재연결
   useEffect(() => {
-    // videoOn이 true이고 videoRef가 존재하고 stream도 존재하면 srcObject 재연결
     if (videoOn && videoRef.current && videoTrackRef.current) {
       const stream = new MediaStream();
       stream.addTrack(videoTrackRef.current);
       if (audioTrackRef.current) {
-        stream.addTrack(audioTrackRef.current); // 오디오도 함께 연결할 수 있음
+        stream.addTrack(audioTrackRef.current);
       }
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch((err) => {
@@ -52,7 +53,6 @@ const StudentPage = () => {
   }, [micOn]);
 
   useEffect(() => {
-
     let stream: MediaStream | null = null;
     let interval: number | null = null;
     let ws: WebSocket | null = null;
@@ -75,10 +75,22 @@ const StudentPage = () => {
 
         // WebSocket 연결
         ws = new WebSocket("ws://localhost:8000/ws/student");
-        // 지금은 웹소켓 연결 유무에 따라 연결상태가 나뉨 
-        // -> 나중에 교수자 입장 유무에 따라 연결상태의 유무가 바뀌도록 수정해야 함
-        ws.onopen = () => setConnected(true); 
-        ws.onclose = () => setConnected(false);
+        ws.onopen = () => {
+          setConnected(true);
+        };
+        ws.onclose = () => {
+          setConnected(false);
+        };
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'warning') {
+              setIsFocusWarningOn(true);
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
 
         // 프레임 전송
         const sendFrame = () => {
@@ -98,7 +110,6 @@ const StudentPage = () => {
         interval = setInterval(sendFrame, 100);
       } catch (error) {
         console.error("Error accessing webcam/microphone or connecting to server:", error);
-        alert("웹캠/마이크 접근 또는 서버 연결에 실패했습니다.");
       }
     };
 
@@ -109,7 +120,7 @@ const StudentPage = () => {
       if (ws) ws.close();
       if (stream) stream.getTracks().forEach((track) => track.stop());
     };
-  }, []); // 트랙 상태가 바뀔 때마다 반영
+  }, []);
 
   const handleToggleMic = () => {
     setMicOn((prev) => {
@@ -132,22 +143,33 @@ const StudentPage = () => {
   };
 
   const handleExit = () => {
-    // 페이지 이동 또는 상태 변경 등
     navigate("/login");
   };
 
-  // UI 구성: 비디오와 타이틀
   return (
     <div className="student-page">
       <TopBar connected={connected} />
+      {isFocusWarningOn && (
+        <div className="focus-warning-box">
+          <div className="focus-warning-content">
+            <span className="focus-warning-icon">⚠️</span>
+            <span className="focus-warning-text">집중력이 매우 낮습니다.</span>
+            <button 
+              className="focus-warning-dismiss"
+              onClick={() => setIsFocusWarningOn(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
       <div className="video-container">
         <audio ref={audioRef} autoPlay />
         {videoOn ? (
-          <video ref={videoRef} autoPlay />
+          <video ref={videoRef} autoPlay className={isFocusWarningOn ? 'warning-active' : ''} />
         ) : (
-          <div className="video-off-overlay">
+          <div className={`video-off-overlay ${isFocusWarningOn ? 'warning-active' : ''}`}>
             <div className="video-off-icon">
-              {/* SVG 아이콘 또는 이미지 사용 */}
               <img src={studentImage} alt="student" />
             </div>
             <div className="video-off-text">카메라가 꺼져 있습니다</div>
