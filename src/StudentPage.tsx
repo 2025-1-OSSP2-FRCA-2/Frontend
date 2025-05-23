@@ -23,6 +23,112 @@ const StudentPage = () => {
   const [connected, setConnected] = useState(false);
   const [micOn, setMicOn] = useState(false); // 마이크가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
   const [videoOn, setVideoOn] = useState(false); // 비디오가 켜져 있는지(true) 꺼져 있는지(false)를 상태로 관리
+  
+  const [studentId] = useState(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.role !== 'student') {
+      // 학생이 아닌 경우 로그인 페이지로 리다이렉트
+      navigate('/login');
+      return '';
+    }
+    console.log('학생 ID:', user.id); // 학생 ID 로깅
+    return user.id;
+  });
+
+  useEffect(() => {
+    // studentId가 없으면 (학생이 아닌 경우) 실행하지 않음
+    if (!studentId) return;
+
+    let stream: MediaStream | null = null;
+    let interval: number | null = null;
+    let ws: WebSocket | null = null;
+
+    const setup = async () => {
+      try {
+        // WebSocket 연결 먼저 시도
+        ws = new WebSocket(`ws://localhost:8000/ws/student/${studentId}`);
+        
+        ws.onopen = () => {
+          console.log(`WebSocket 연결됨 (학생 ID: ${studentId})`);
+          // WebSocket 연결 성공 후 미디어 스트림 설정
+          setupMediaStream();
+        };
+
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          console.log('서버로부터 메시지 수신:', data); // 메시지 로깅
+          switch (data.type) {
+            case "teacher_connected":
+              console.log('선생님 연결됨');
+              setConnected(true);
+              break;
+            case "teacher_disconnected":
+              console.log('선생님 연결 해제됨');
+              setConnected(false);
+              break;
+            case "warning":
+              alert(data.message);
+              break;
+          }
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket 연결 종료');
+          setConnected(false);
+        };
+
+      } catch (error) {
+        console.error("Error connecting to server:", error);
+        alert("서버 연결에 실패했습니다.");
+      }
+    };
+
+    const setupMediaStream = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+        // 트랙 저장 및 상태 반영
+        const audioTrack = stream.getAudioTracks()[0];
+        audioTrackRef.current = audioTrack;
+        if (audioTrack) audioTrack.enabled = micOn;
+
+        const videoTrack = stream.getVideoTracks()[0];
+        videoTrackRef.current = videoTrack;
+        if (videoTrack) videoTrack.enabled = videoOn;
+
+        // 프레임 전송 설정
+        const sendFrame = () => {
+          if (!videoRef.current || ws?.readyState !== WebSocket.OPEN) return;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          canvas.width = videoRef.current.videoWidth;
+          canvas.height = videoRef.current.videoHeight;
+          ctx.drawImage(videoRef.current, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob && ws?.readyState === WebSocket.OPEN) {
+              ws.send(blob);
+            }
+          }, "image/jpeg");
+        };
+        // 0.1초마다 프레임 전송
+        interval = setInterval(sendFrame, 100);
+      } catch (error) {
+        console.error("Error accessing webcam/microphone:", error);
+        alert("웹캠/마이크 접근에 실패했습니다.");
+      }
+    };
+
+    setup();
+
+    return () => {
+      if (interval) clearInterval(interval);
+      if (ws) ws.close();
+      if (stream) stream.getTracks().forEach((track) => track.stop());
+    };
+  }, [studentId, navigate]); // navigate를 의존성 배열에 추가
 
   useEffect(() => {
     // videoOn이 true이고 videoRef가 존재하고 stream도 존재하면 srcObject 재연결
@@ -50,66 +156,6 @@ const StudentPage = () => {
       );
     }
   }, [micOn]);
-
-  useEffect(() => {
-
-    let stream: MediaStream | null = null;
-    let interval: number | null = null;
-    let ws: WebSocket | null = null;
-
-    const setup = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-        // 트랙 저장 및 상태 반영
-        const audioTrack = stream.getAudioTracks()[0];
-        audioTrackRef.current = audioTrack;
-        if (audioTrack) audioTrack.enabled = micOn;
-
-        const videoTrack = stream.getVideoTracks()[0];
-        videoTrackRef.current = videoTrack;
-        if (videoTrack) videoTrack.enabled = videoOn;
-
-        // WebSocket 연결
-        ws = new WebSocket("ws://localhost:8000/ws/student");
-        // 지금은 웹소켓 연결 유무에 따라 연결상태가 나뉨 
-        // -> 나중에 교수자 입장 유무에 따라 연결상태의 유무가 바뀌도록 수정해야 함
-        ws.onopen = () => setConnected(true); 
-        ws.onclose = () => setConnected(false);
-
-        // 프레임 전송
-        const sendFrame = () => {
-          if (!videoRef.current || ws?.readyState !== WebSocket.OPEN) return;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return;
-          canvas.width = videoRef.current.videoWidth;
-          canvas.height = videoRef.current.videoHeight;
-          ctx.drawImage(videoRef.current, 0, 0);
-          canvas.toBlob((blob) => {
-            if (blob && ws?.readyState === WebSocket.OPEN) {
-              ws.send(blob);
-            }
-          }, "image/jpeg");
-        };
-        // 0.1초마다 프레임 전송
-        interval = setInterval(sendFrame, 100);
-      } catch (error) {
-        console.error("Error accessing webcam/microphone or connecting to server:", error);
-        alert("웹캠/마이크 접근 또는 서버 연결에 실패했습니다.");
-      }
-    };
-
-    setup();
-
-    return () => {
-      if (interval) clearInterval(interval);
-      if (ws) ws.close();
-      if (stream) stream.getTracks().forEach((track) => track.stop());
-    };
-  }, []); // 트랙 상태가 바뀔 때마다 반영
 
   const handleToggleMic = () => {
     setMicOn((prev) => {

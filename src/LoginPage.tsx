@@ -18,11 +18,36 @@ const LoginPage = () => {
 
     const handleLogin = () => {
         if (email === "admin@example.com" && password === "admin123") {
-        navigate("/prof");
-        } else if (email === "student@example.com" && password === "student123") {
-        navigate("/student");
+            // 교수자 정보 저장
+            localStorage.setItem('user', JSON.stringify({
+                id: 'admin',
+                email: email,
+                role: 'teacher'
+            }));
+            navigate("/prof");
+        } else if (email === "student1@example.com" && password === "student123") {
+            localStorage.setItem('user', JSON.stringify({
+                id: '1',
+                email: email,
+                role: 'student'
+            }));
+            navigate("/student");
+        } else if (email === "student2@example.com" && password === "student123") {
+            localStorage.setItem('user', JSON.stringify({
+                id: '2',
+                email: email,
+                role: 'student'
+            }));
+            navigate("/student");
+        } else if (email === "student3@example.com" && password === "student123") {
+            localStorage.setItem('user', JSON.stringify({
+                id: '3',
+                email: email,
+                role: 'student'
+            }));
+            navigate("/student");
         } else {
-        setError(true); 
+            setError(true); 
         }
     };
 
