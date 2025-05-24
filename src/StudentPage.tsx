@@ -46,10 +46,15 @@ const StudentPage = () => {
   // 사용자 인증 체크를 위한 useEffect
   useEffect(() => {
     if (!locationState?.studentId) {
-      navigate('/login'); // studentId가 없으면 로그인 페이지로 이동
-      return;
+      const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+      if (!user.id || user.role !== 'student') {
+        navigate('/login');
+        return;
+      }
+      setStudentId(user.id);
+    } else {
+      setStudentId(locationState.studentId);
     }
-    setStudentId(locationState.studentId); // studentId 설정
   }, [navigate, locationState]);
 
   // WebSocket 및 미디어 스트림 설정을 위한 useEffect
@@ -135,7 +140,7 @@ const StudentPage = () => {
           }, "image/jpeg");
         };
         
-        interval = setInterval(sendFrame, 1000); // 1000ms마다 프레임 전송
+        interval = setInterval(sendFrame, 3000); // 1000ms마다 프레임 전송
       } catch (error) {
         console.error("Error accessing webcam/microphone:", error);
         alert("웹캠/마이크 접근에 실패했습니다.");
