@@ -19,7 +19,7 @@ const WaitingPage = ({
 
     useEffect(() => {
         // 사용자 정보 가져오기
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         if (user.role !== 'student') {
             navigate('/login');
             return;
@@ -43,7 +43,7 @@ const WaitingPage = ({
                 // navigate("/student", { state: { ws: wsRef.current } });
                 
                 // ✅ WebSocket 넘기지 말고 studentId만 전달
-    navigate("/student", { state: { studentId: user.id } });
+                navigate("/student", { state: { studentId: user.id } });
             }
         };
 

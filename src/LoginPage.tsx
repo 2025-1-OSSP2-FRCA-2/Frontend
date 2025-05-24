@@ -47,28 +47,28 @@ const LoginPage = () => {
 
     const handleLogin = () => {
         if (email === "1" && password === "1") {
-            localStorage.setItem('user', JSON.stringify({
+            sessionStorage.setItem('user', JSON.stringify({
                 id: 'admin',
                 email: email,
                 role: 'teacher'
             }));
             navigate("/prof");
         } else if (email === "111" && password === "111") {
-            localStorage.setItem('user', JSON.stringify({
+            sessionStorage.setItem('user', JSON.stringify({
                 id: '1',
                 email: email,
                 role: 'student'
             }));
             checkTeacherConnection('1');
-        } else if (email === "student2@example.com" && password === "student123") {
-            localStorage.setItem('user', JSON.stringify({
+        } else if (email === "222" && password === "222") {
+            sessionStorage.setItem('user', JSON.stringify({
                 id: '2',
                 email: email,
                 role: 'student'
             }));
             checkTeacherConnection('2');
-        } else if (email === "student3@example.com" && password === "student123") {
-            localStorage.setItem('user', JSON.stringify({
+        } else if (email === "333" && password === "333") {
+            sessionStorage.setItem('user', JSON.stringify({
                 id: '3',
                 email: email,
                 role: 'student'
