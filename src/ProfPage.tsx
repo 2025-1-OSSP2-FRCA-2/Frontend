@@ -43,6 +43,41 @@ const ProfPage = () => {
     const [videoOn, setVideoOn] = useState(false);
     const profVideoRef = useRef<HTMLVideoElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+
+    // 웹캠 설정 함수
+    const setupWebcam = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: true,
+                audio: false 
+            });
+            if (profVideoRef.current) {
+                profVideoRef.current.srcObject = stream;
+                streamRef.current = stream;
+            }
+        } catch (error) {
+            console.error('웹캠 접근 오류:', error);
+        }
+    };
+
+    // 웹캠 토글 함수
+    const toggleVideo = () => {
+        if (videoOn) {
+            // 웹캠 끄기
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current = null;
+            }
+            if (profVideoRef.current) {
+                profVideoRef.current.srcObject = null;
+            }
+        } else {
+            // 웹캠 켜기
+            setupWebcam();
+        }
+        setVideoOn(prev => !prev);
+    };
 
     useEffect(() => {
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -75,7 +110,16 @@ const ProfPage = () => {
                 setVisibleAlertStates(prev => ({ ...prev, [data.student_id]: true }));
             }
         };
-        return () => { wsRef.current && wsRef.current.close(); };
+
+        // 컴포넌트 언마운트 시 웹캠 정리
+        return () => {
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+        };
     }, [navigate]);
 
     const handleExit = () => {
@@ -149,7 +193,13 @@ const ProfPage = () => {
                     </div>
                     {/* 아래 교수 수업화면 */}
                     <div className="lecture-screen" style={{ width: '800px', height: '520px' }}>
-                        <video ref={profVideoRef} autoPlay className="prof-video" />
+                        <video 
+                            ref={profVideoRef} 
+                            autoPlay 
+                            playsInline
+                            muted
+                            className="prof-video" 
+                        />
                         <div className="prof-label">(수업 화면)</div>
                     </div>
                 </div>
@@ -192,7 +242,7 @@ const ProfPage = () => {
                 micOn={micOn}
                 videoOn={videoOn}
                 onToggleMic={() => setMicOn((prev) => !prev)}
-                onToggleVideo={() => setVideoOn((prev) => !prev)}
+                onToggleVideo={toggleVideo}
                 onExit={handleExit}
             />
         </div>

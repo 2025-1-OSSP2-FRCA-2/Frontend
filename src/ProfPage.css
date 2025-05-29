@@ -77,6 +77,8 @@
     height: 100%;
     object-fit: cover;
     border-radius: 32px;
+    background: #000;
+    transform: scaleX(-1); /* 좌우반전 */
 }
 
 .prof-label {
