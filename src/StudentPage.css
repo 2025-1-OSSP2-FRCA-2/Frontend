@@ -31,6 +31,18 @@
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.student-video {
+    width: 212.334px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 30px;
+    background: #000;
+    transform: scaleX(-1); /* 좌우반전 */
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 .student-page video.warning-active {
     border-color: #ff4444;
     box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
