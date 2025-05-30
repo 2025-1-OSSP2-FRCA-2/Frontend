@@ -24,6 +24,10 @@ const StudentPage = () => {
   const videoTrackRef = useRef<MediaStreamTrack | null>(null);
   // WebSocket 연결을 저장하는 ref
   const wsRef = useRef<WebSocket | null>(null);
+  // WebRTC 시그널링용 WebSocket 연결을 저장하는 ref
+  const rtcWsRef = useRef<WebSocket | null>(null);
+  // PeerConnection을 저장하는 ref
+  const pcRef = useRef<RTCPeerConnection | null>(null);
 
   // 페이지 이동을 위한 navigate 함수
   const navigate = useNavigate();
@@ -42,6 +46,8 @@ const StudentPage = () => {
   const [studentId, setStudentId] = useState<string>('');
   // 집중력 경고 상태를 관리하는 state
   const [isFocusWarningOn, setIsFocusWarningOn] = useState(false);
+  // 로컬 스트림을 저장하는 state
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   
   // 사용자 인증 체크를 위한 useEffect
   useEffect(() => {
@@ -103,7 +109,7 @@ const StudentPage = () => {
 
         await setupMediaStream(); // 미디어 스트림 설정
       } catch (error) {
-        console.error("Error connecting to server:", error);
+        console.error("서버 연결 오류:", error);
         alert("서버 연결에 실패했습니다.");
       }
     };
@@ -140,9 +146,9 @@ const StudentPage = () => {
           }, "image/jpeg");
         };
         
-        interval = setInterval(sendFrame, 3000); // 1000ms마다 프레임 전송
+        interval = setInterval(sendFrame, 1000); // 1000ms마다 프레임 전송
       } catch (error) {
-        console.error("Error accessing webcam/microphone:", error);
+        console.error("웹캠/마이크 접근 오류:", error);
         alert("웹캠/마이크 접근에 실패했습니다.");
       }
     };
@@ -186,6 +192,27 @@ const StudentPage = () => {
     }
   }, [micOn]);
 
+  // WebRTC 시그널링용 WebSocket 연결 (마운트 시)
+  useEffect(() => {
+    if (!studentId) return;
+    rtcWsRef.current = new WebSocket(`ws://localhost:8000/ws/webrtc/student/${studentId}`);
+    rtcWsRef.current.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "answer") {
+        console.log('[학생] answer 수신', data);
+        await pcRef.current?.setRemoteDescription(data.sdp);
+      }
+      if (data.type === "candidate") {
+        console.log('[학생] candidate 수신', data);
+        await pcRef.current?.addIceCandidate(data.candidate);
+      }
+    };
+    return () => {
+      rtcWsRef.current?.close();
+      pcRef.current?.close();
+    };
+  }, [studentId]);
+
   // 마이크 상태 토글 함수
   const handleToggleMic = () => {
     setMicOn((prev) => {
@@ -197,14 +224,61 @@ const StudentPage = () => {
     });
   };
 
-  // 비디오 상태 토글 함수
-  const handleToggleVideo = () => {
-    setVideoOn((prev) => {
-      const newState = !prev;
-      if (videoTrackRef.current) {
-        videoTrackRef.current.enabled = newState;
+  // 캠 토글 함수(WebRTC용)
+  const handleToggleVideo = async () => {
+    if (!videoOn) {
+      // 캠 켜기
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      console.log('[학생] getUserMedia 성공', stream);
+      setLocalStream(stream);
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      // WebRTC PeerConnection 새로 생성
+      pcRef.current?.close();
+      pcRef.current = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+      // 트랙 추가
+      stream.getTracks().forEach(track => {
+        pcRef.current!.addTrack(track, stream);
+        console.log('[학생] 트랙 추가:', track);
+      });
+
+      // ICE candidate 발생 시 시그널링 서버로 전송
+      pcRef.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log('[학생] ICE candidate 전송:', event.candidate);
+          rtcWsRef.current?.send(JSON.stringify({
+            type: "candidate",
+            candidate: event.candidate,
+            to: "prof"
+          }));
+        }
+      };
+
+      // offer 생성 및 전송 (트랙 추가 후!)
+      console.log('[학생] 트랙 추가 후 offer 생성');
+      const offer = await pcRef.current.createOffer();
+      await pcRef.current.setLocalDescription(offer);
+      console.log('[학생] offer 생성 및 전송', offer);
+      rtcWsRef.current?.send(JSON.stringify({
+        type: "offer",
+        sdp: offer,
+        to: "prof"
+      }));
+    } else {
+      // 캠 끄기
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        setLocalStream(null);
+        if (videoRef.current) videoRef.current.srcObject = null;
       }
-      return newState;
+      pcRef.current?.close();
+      pcRef.current = null;
+    }
+    setVideoOn((prev) => {
+            const newState = !prev;
+            if (videoTrackRef.current) {
+              videoTrackRef.current.enabled = newState;
+            }
+            return newState;
     });
   };
 
@@ -234,8 +308,7 @@ const StudentPage = () => {
       <div className={`video-container`}>
         <audio ref={audioRef} autoPlay />
         {videoOn ? (
-          <video ref={videoRef} autoPlay className={isFocusWarningOn ? 'warning-active' : ''} />
-        ) : (
+          <video ref={videoRef} autoPlay className={isFocusWarningOn ? 'warning-active' : ''} />        ) : (
           <div className={`video-off-overlay ${isFocusWarningOn ? 'warning-active' : ''}`}>
             <div className="video-off-icon">
               {/* SVG 아이콘 또는 이미지 사용 */}

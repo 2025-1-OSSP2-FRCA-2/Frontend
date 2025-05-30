@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+// 필요한 React 훅과 컴포넌트, 스타일, 이미지 등을 import
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import TopBar from "./TopBar";
 import BottomBar from "./BottomBar";
 import "./ProfPage.css";
@@ -6,8 +7,8 @@ import { useNavigate } from "react-router-dom";
 import alertIcon from "./assets/alert_icon.svg";
 import checkIcon from "./assets/approved.svg";
 import FlagImage from "./assets/flag-icon.svg";
-import studentImage from "./assets/student.svg";
 
+// 학생 데이터 인터페이스 정의
 interface StudentData {
     student_id: string;
     emotion_results: {
@@ -19,31 +20,61 @@ interface StudentData {
     concentration: number;
 }
 
+// 최대 학생 수 상수 정의
 const MAX_STUDENTS = 3;
 
+// 상태에 따른 테두리 색상 정의
 const borderColors: Record<string, string> = {
     low: "#A42E27",
     normal: "#AD8657",
     good: "#588051",
 };
 
+// 집중도에 따른 상태 반환 함수
 const getStatus = (concentration: number) => {
     if (concentration < 40) return "low";
     if (concentration < 70) return "normal";
     return "good";
 };
 
+// ProfPage 컴포넌트 정의
 const ProfPage = () => {
-    const navigate = useNavigate();
-    const [connected, setConnected] = useState(false);
-    const [students, setStudents] = useState<{ [key: string]: StudentData }>({});
-    const [alertStates, setAlertStates] = useState<{ [studentId: string]: boolean }>({});
-    const [visibleAlertStates, setVisibleAlertStates] = useState<{ [studentId: string]: boolean }>({});
-    const [micOn, setMicOn] = useState(false);
-    const [videoOn, setVideoOn] = useState(false);
-    const profVideoRef = useRef<HTMLVideoElement>(null);
-    const wsRef = useRef<WebSocket | null>(null);
-    const streamRef = useRef<MediaStream | null>(null);
+    const navigate = useNavigate(); // 페이지 이동을 위한 훅
+    const [connected, setConnected] = useState(false); // 연결 상태
+    const [students, setStudents] = useState<{ [key: string]: StudentData }>({}); // 학생 데이터 상태
+    const [alertStates, setAlertStates] = useState<{ [studentId: string]: boolean }>({}); // 경고 상태
+    const [visibleAlertStates, setVisibleAlertStates] = useState<{ [studentId: string]: boolean }>({}); // 경고 표시 상태
+    const [micOn, setMicOn] = useState(false); // 마이크 상태
+    const [videoOn, setVideoOn] = useState(false); // 비디오 상태
+    const profVideoRef = useRef<HTMLVideoElement>(null); // 교수 비디오 ref
+    const wsRef = useRef<WebSocket | null>(null); // WebSocket ref
+    const streamRef = useRef<MediaStream | null>(null); // 미디어 스트림 ref
+    const rtcWsRef = useRef<WebSocket | null>(null); // WebRTC WebSocket ref
+    const pcMapRef = useRef<{ [id: string]: RTCPeerConnection }>({}); // PeerConnection 맵 ref
+    const [studentStreams, setStudentStreams] = useState<{ [id: string]: MediaStream }>({}); // 학생 스트림 상태
+    const videoRefs = useRef<{ [id: string]: HTMLVideoElement | null }>({}); // 비디오 요소 ref
+    const streamsRef = useRef<{ [id: string]: MediaStream }>({});  // 스트림 참조를 위한 ref 추가
+
+    // 스트림 업데이트를 위한 함수
+    const updateStudentStream = (studentId: string, stream: MediaStream) => {
+        if (streamsRef.current[studentId] !== stream) {
+            streamsRef.current[studentId] = stream;
+            setStudentStreams(prev => {
+                if (prev[studentId] === stream) return prev;
+                return { ...prev, [studentId]: stream };
+            });
+        }
+    };
+
+    // 학생 스트림이 변경될 때마다 비디오 요소에 스트림 설정
+    useLayoutEffect(() => {
+        Object.entries(streamsRef.current).forEach(([studentId, stream]) => {
+            const videoEl = videoRefs.current[studentId];
+            if (videoEl && videoEl.srcObject !== stream) {
+                videoEl.srcObject = stream;
+            }
+        });
+    }, [studentStreams]);
 
     // 웹캠 설정 함수
     const setupWebcam = async () => {
@@ -79,6 +110,7 @@ const ProfPage = () => {
         setVideoOn(prev => !prev);
     };
 
+    // 컴포넌트 마운트 시 WebSocket 연결 설정
     useEffect(() => {
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         if (user.role !== 'teacher') {
@@ -122,6 +154,94 @@ const ProfPage = () => {
         };
     }, [navigate]);
 
+    // WebRTC 연결 설정
+    useEffect(() => {
+        rtcWsRef.current = new WebSocket('ws://localhost:8000/ws/webrtc/prof');
+        rtcWsRef.current.onmessage = async (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "offer" && data.from_student_id) {
+                const studentId = data.from_student_id;
+                
+                // 기존 PeerConnection이 있다면 닫기
+                if (pcMapRef.current[studentId]) {
+                    pcMapRef.current[studentId].close();
+                    delete pcMapRef.current[studentId];
+                }
+
+                // 새로운 PeerConnection 생성
+                const pc = new RTCPeerConnection({ 
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+                });
+                
+                pc.ontrack = (event) => {
+                    console.log('[강사] ontrack 호출:', studentId, event.streams[0]);
+                    updateStudentStream(studentId, event.streams[0]);
+                };
+
+                pc.onicecandidate = (event) => {
+                    if (event.candidate && rtcWsRef.current?.readyState === WebSocket.OPEN) {
+                        rtcWsRef.current.send(JSON.stringify({
+                            type: "candidate",
+                            candidate: event.candidate,
+                            to_student_id: studentId
+                        }));
+                    }
+                };
+
+                // PeerConnection을 Map에 저장
+                pcMapRef.current[studentId] = pc;
+
+                try {
+                    await pc.setRemoteDescription(data.sdp);
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    
+                    if (rtcWsRef.current?.readyState === WebSocket.OPEN) {
+                        rtcWsRef.current.send(JSON.stringify({
+                            type: "answer",
+                            sdp: answer,
+                            to_student_id: studentId
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error handling offer:', error);
+                    pc.close();
+                    delete pcMapRef.current[studentId];
+                }
+            }
+            
+            if (data.type === "candidate" && data.from_student_id) {
+                const pc = pcMapRef.current[data.from_student_id];
+                if (pc && pc.signalingState !== 'closed') {
+                    try {
+                        await pc.addIceCandidate(data.candidate);
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                }
+            }
+        };
+
+        // 컴포넌트 언마운트 시 WebRTC 연결 정리
+        return () => {
+            rtcWsRef.current?.close();
+            Object.values(pcMapRef.current).forEach(pc => pc.close());
+            pcMapRef.current = {};  // Map 초기화
+        };
+    }, []);
+
+    // 비디오 ref 설정을 위한 함수
+    const setVideoRef = (studentId: string, el: HTMLVideoElement | null) => {
+        if (el) {
+            videoRefs.current[studentId] = el;
+            const stream = streamsRef.current[studentId];
+            if (stream && el.srcObject !== stream) {
+                el.srcObject = stream;
+            }
+        }
+    };
+
+    // 로그아웃 및 페이지 이동 함수
     const handleExit = () => {
         sessionStorage.clear();
         navigate('/login');
@@ -154,6 +274,17 @@ const ProfPage = () => {
         return student || null;
     });
 
+    // 컴포넌트 언마운트 시 정리
+    useEffect(() => {
+        return () => {
+            Object.values(streamsRef.current).forEach(stream => {
+                stream.getTracks().forEach(track => track.stop());
+            });
+            streamsRef.current = {};
+        };
+    }, []);
+
+    // 컴포넌트 렌더링
     return (
         <div className="prof-root">
             <TopBar connected={connected} />
@@ -180,6 +311,14 @@ const ProfPage = () => {
                                             <div style={{marginTop: 8, fontWeight: 600, color: "#fff"}}>
                                                 집중도: {student.concentration}
                                             </div>
+                                            <video
+                                                key={student.student_id}
+                                                ref={el => setVideoRef(student.student_id, el)}
+                                                autoPlay
+                                                playsInline
+                                                muted
+                                                className="student-video"
+                                            />
                                             {status === "low" && (
                                                 <img src={alertIcon} alt="주의 필요" className="student-alert-icon" />
                                             )}
