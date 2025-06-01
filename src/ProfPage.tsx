@@ -1,5 +1,5 @@
 // 필요한 React 훅과 컴포넌트, 스타일, 이미지 등을 import
-import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import TopBar from "./TopBar";
 import BottomBar from "./BottomBar";
 import "./ProfPage.css";
@@ -37,10 +37,16 @@ const getStatus = (concentration: number) => {
     return "good";
 };
 
+// ProfPage 컴포넌트 props 인터페이스 정의
+interface ProfPageProps {
+    onExit: () => void;
+    connected: boolean;
+}
+
 // ProfPage 컴포넌트 정의
-const ProfPage = () => {
+const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
     const navigate = useNavigate(); // 페이지 이동을 위한 훅
-    const [connected, setConnected] = useState(false); // 연결 상태
+    const [connected, setConnected] = useState(initialConnected); // 연결 상태
     const [students, setStudents] = useState<{ [key: string]: StudentData }>({}); // 학생 데이터 상태
     const [alertStates, setAlertStates] = useState<{ [studentId: string]: boolean }>({}); // 경고 상태
     const [visibleAlertStates, setVisibleAlertStates] = useState<{ [studentId: string]: boolean }>({}); // 경고 표시 상태
@@ -244,6 +250,7 @@ const ProfPage = () => {
     // 로그아웃 및 페이지 이동 함수
     const handleExit = () => {
         sessionStorage.clear();
+        onExit();  // onExit prop 호출
         navigate('/login');
     };
 

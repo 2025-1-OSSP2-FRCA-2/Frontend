@@ -15,7 +15,7 @@ const LoginPage = () => {
     const [error, setError] = useState(false);
     const [hidePassword, setHidePassword] = useState(true);
 
-    const checkTeacherConnection = (studentId: string) => {
+    const checkTeacherConnection = () => {
         const ws = new WebSocket(`ws://localhost:8000/ws/check_connection`);
         
         ws.onopen = () => {
@@ -59,21 +59,21 @@ const LoginPage = () => {
                 email: email,
                 role: 'student'
             }));
-            checkTeacherConnection('1');
+            checkTeacherConnection();
         } else if (email === "222" && password === "222") {
             sessionStorage.setItem('user', JSON.stringify({
                 id: '2',
                 email: email,
                 role: 'student'
             }));
-            checkTeacherConnection('2');
+            checkTeacherConnection();
         } else if (email === "333" && password === "333") {
             sessionStorage.setItem('user', JSON.stringify({
                 id: '3',
                 email: email,
                 role: 'student'
             }));
-            checkTeacherConnection('3');
+            checkTeacherConnection();
         } else {
             setError(true); 
         }

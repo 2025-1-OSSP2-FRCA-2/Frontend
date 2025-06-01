@@ -1,11 +1,10 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./BottomBar.css"
 import videoOffImage from "./assets/video_off.svg"
 import videoOnImage from "./assets/video_on.svg"
 import micOffImage from "./assets/mic_off.svg"
 import micOnImage from "./assets/mic_on.svg"
 import exitImage from "./assets/종료 버튼.svg"
-import { useNavigate } from "react-router-dom";
 
 interface BottomBarProps {
     micOn: boolean;
