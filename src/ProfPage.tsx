@@ -61,6 +61,9 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
     const videoRefs = useRef<{ [id: string]: HTMLVideoElement | null }>({}); // 비디오 요소 ref
     const streamsRef = useRef<{ [id: string]: MediaStream }>({});  // 스트림 참조를 위한 ref 추가
 
+    const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
+
+
     // 스트림 업데이트를 위한 함수
     const updateStudentStream = (studentId: string, stream: MediaStream) => {
         if (streamsRef.current[studentId] !== stream) {
@@ -124,7 +127,8 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
             return;
         }
 
-        wsRef.current = new WebSocket('ws://localhost:8000/ws/prof');
+        wsRef.current = new WebSocket(`${WS_BASE_URL}/ws/prof`);
+        
         wsRef.current.onopen = () => setConnected(true);
         wsRef.current.onclose = () => setConnected(false);
         wsRef.current.onmessage = (event) => {
@@ -162,7 +166,8 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
 
     // WebRTC 연결 설정
     useEffect(() => {
-        rtcWsRef.current = new WebSocket('ws://localhost:8000/ws/webrtc/prof');
+        rtcWsRef.current = new WebSocket(`${WS_BASE_URL}/ws/webrtc/prof`);
+
         rtcWsRef.current.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             if (data.type === "offer" && data.from_student_id) {

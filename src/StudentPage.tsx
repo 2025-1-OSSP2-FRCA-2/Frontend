@@ -48,6 +48,8 @@ const StudentPage = () => {
   const [isFocusWarningOn, setIsFocusWarningOn] = useState(false);
   // 로컬 스트림을 저장하는 state
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+
+  const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
   
   // 사용자 인증 체크를 위한 useEffect
   useEffect(() => {
@@ -74,8 +76,7 @@ const StudentPage = () => {
     const setup = async () => {
       try {
         console.log('새로운 WebSocket 연결 생성');
-        wsRef.current = new WebSocket(`ws://localhost:8000/ws/student/${studentId}`);
-        
+        wsRef.current = new WebSocket(`${WS_BASE_URL}/ws/student/${studentId}`);
         wsRef.current.onopen = () => {
           console.log(`WebSocket 연결됨 (학생 ID: ${studentId})`);
           setConnected(true); // 연결 상태 업데이트
@@ -195,7 +196,7 @@ const StudentPage = () => {
   // WebRTC 시그널링용 WebSocket 연결 (마운트 시)
   useEffect(() => {
     if (!studentId) return;
-    rtcWsRef.current = new WebSocket(`ws://localhost:8000/ws/webrtc/student/${studentId}`);
+    rtcWsRef.current = new WebSocket(`${WS_BASE_URL}/ws/webrtc/student/${studentId}`);
     rtcWsRef.current.onmessage = async (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "answer") {

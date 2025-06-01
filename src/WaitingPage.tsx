@@ -17,6 +17,8 @@ const WaitingPage = ({
     const [isConnected, setIsConnected] = useState(connected);
     const wsRef = useRef<WebSocket | null>(null);
 
+    const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
+
     useEffect(() => {
         // 사용자 정보 가져오기
         const user = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -26,7 +28,7 @@ const WaitingPage = ({
         }
 
         // WebSocket 연결 설정
-        wsRef.current = new WebSocket(`ws://localhost:8000/ws/student/${user.id}`);
+        wsRef.current = new WebSocket(`${WS_BASE_URL}/ws/student/${user.id}`);        
         
         wsRef.current.onopen = () => {
             console.log('WebSocket 연결됨 (WaitingPage)');
