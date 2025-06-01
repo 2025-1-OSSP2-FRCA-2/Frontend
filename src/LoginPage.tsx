@@ -18,7 +18,7 @@ const LoginPage = () => {
     const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
 
     const checkTeacherConnection = () => {
-        const ws = new WebSocket(`${WS_BASE_URL}ws/check_connection`);
+        const ws = new WebSocket(`${WS_BASE_URL}/check_connection`);
         
         ws.onopen = () => {
             console.log('Checking teacher connection status...');
