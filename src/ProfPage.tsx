@@ -201,6 +201,7 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                 };
 
                 pc.onicecandidate = (event) => {
+                    console.log('[강사] ICE candidate 생성됨:', event.candidate);  // 로그 찍기
                     if (event.candidate && rtcWsRef.current?.readyState === WebSocket.OPEN) {
                         rtcWsRef.current.send(JSON.stringify({
                             type: "candidate",

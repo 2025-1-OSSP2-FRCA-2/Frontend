@@ -257,6 +257,7 @@ const StudentPage = () => {
 
       // ICE candidate 발생 시 시그널링 서버로 전송
       pcRef.current.onicecandidate = (event) => {
+        console.log('[학생] ICE candidate 생성됨:', event.candidate);  // 로그 찍기
         if (event.candidate) {
           console.log('[학생] ICE candidate 전송:', event.candidate);
           rtcWsRef.current?.send(JSON.stringify({
