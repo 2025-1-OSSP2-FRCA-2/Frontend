@@ -47,6 +47,7 @@ const LoginPage = () => {
             console.log('WebSocket connection closed');
         };
     };
+    
 
     const handleLogin = () => {
         if (email === "1" && password === "1") {
