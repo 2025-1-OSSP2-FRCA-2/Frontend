@@ -256,6 +256,12 @@ const StudentPage = () => {
         console.log(`[학생] 시그널링 상태: ${pcRef.current?.signalingState}`);
       };
 
+      pcRef.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          console.log("🎯 candidate 타입:", event.candidate?.type); // 이게 'relay'여야 TURN 사용
+        }
+      };
+
       // 트랙 추가
       stream.getTracks().forEach(track => {
         pcRef.current!.addTrack(track, stream);

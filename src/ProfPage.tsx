@@ -203,6 +203,12 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                     console.log('[강사] ontrack 호출:', studentId, event.streams[0]);
                     updateStudentStream(studentId, event.streams[0]);
                 };
+                
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                      console.log("🎯 candidate 타입:", event.candidate?.type); // 이게 'relay'여야 TURN 사용
+                    }
+                };
 
                 pc.onicecandidate = (event) => {
                     console.log('[강사] ICE candidate 생성됨:', event.candidate);  // 로그 찍기
