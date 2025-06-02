@@ -182,9 +182,13 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                 // 새로운 PeerConnection 생성
                 const pc = new RTCPeerConnection({ 
                     iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        {
-                            urls: 'turn:openrelay.metered.ca:80',
+                        { 
+                            urls: [
+                            "stun:stun.l.google.com:19302",   // STUN 서버
+                            "turn:openrelay.metered.ca:80",   // ✅ 무료 TURN (테스트용)
+                            "turn:openrelay.metered.ca:443",
+                            "turn:openrelay.metered.ca:443?transport=tcp"
+                            ],
                             username: 'openrelayproject',
                             credential: 'openrelayproject'
                         }

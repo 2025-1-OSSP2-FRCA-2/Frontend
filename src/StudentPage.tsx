@@ -235,12 +235,17 @@ const StudentPage = () => {
       if (videoRef.current) videoRef.current.srcObject = stream;
       // WebRTC PeerConnection 새로 생성
       pcRef.current?.close();
-      pcRef.current = new RTCPeerConnection({ iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-          {
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'        
+      pcRef.current = new RTCPeerConnection({ 
+        iceServers: [
+          { 
+              urls: [
+              "stun:stun.l.google.com:19302",   // STUN 서버
+              "turn:openrelay.metered.ca:80",   // ✅ 무료 TURN (테스트용)
+              "turn:openrelay.metered.ca:443",
+              "turn:openrelay.metered.ca:443?transport=tcp"
+              ],
+              username: 'openrelayproject',
+              credential: 'openrelayproject'
           }
         ] 
       });
