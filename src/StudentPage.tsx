@@ -238,7 +238,10 @@ const StudentPage = () => {
       pcRef.current = new RTCPeerConnection({ 
         iceServers: [
           { 
-              urls: ["turn:3.39.230.184:3478"],
+              urls: [
+                "stun:stun.l.google.com:19302",
+                "turn:3.39.230.184:3478"
+              ],
               username: 'dohoon',
               credential: '111'
           }
