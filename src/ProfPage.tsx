@@ -183,14 +183,9 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                 const pc = new RTCPeerConnection({ 
                     iceServers: [
                         { 
-                            urls: [
-                            "stun:stun.l.google.com:19302",   // STUN 서버
-                            "turn:openrelay.metered.ca:80",   // ✅ 무료 TURN (테스트용)
-                            "turn:openrelay.metered.ca:443",
-                            "turn:openrelay.metered.ca:443?transport=tcp"
-                            ],
-                            username: 'openrelayproject',
-                            credential: 'openrelayproject'
+                            urls: ["turn:3.39.230.184:3478"],
+                            username: 'dohoon',
+                            credential: '111'
                         }
                     ] 
                 });
@@ -204,15 +199,11 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                     updateStudentStream(studentId, event.streams[0]);
                 };
                 
-                pc.onicecandidate = (event) => {
-                    if (event.candidate) {
-                      console.log("🎯 candidate 타입:", event.candidate?.type); // 이게 'relay'여야 TURN 사용
-                    }
-                };
 
                 pc.onicecandidate = (event) => {
                     console.log('[강사] ICE candidate 생성됨:', event.candidate);  // 로그 찍기
                     if (event.candidate) {
+                        console.log("🎯 candidate 타입:", event.candidate?.type); // 이게 'relay'여야 TURN 사용
                         console.log('[강사] ICE candidate 타입:', event.candidate.type);
                         console.log('[강사] ICE candidate 프로토콜:', event.candidate.protocol);
                         console.log('[강사] ICE candidate 주소:', event.candidate.address);

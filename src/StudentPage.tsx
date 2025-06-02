@@ -238,14 +238,9 @@ const StudentPage = () => {
       pcRef.current = new RTCPeerConnection({ 
         iceServers: [
           { 
-              urls: [
-              "stun:stun.l.google.com:19302",   // STUN 서버
-              "turn:openrelay.metered.ca:80",   // ✅ 무료 TURN (테스트용)
-              "turn:openrelay.metered.ca:443",
-              "turn:openrelay.metered.ca:443?transport=tcp"
-              ],
-              username: 'openrelayproject',
-              credential: 'openrelayproject'
+              urls: ["turn:3.39.230.184:3478"],
+              username: 'dohoon',
+              credential: '111'
           }
         ] 
       });
