@@ -181,9 +181,16 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
 
                 // 새로운 PeerConnection 생성
                 const pc = new RTCPeerConnection({ 
-                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        {
+                            urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        }
+                    ] 
                 });
-                
+
                 pc.oniceconnectionstatechange = () => {
                     console.log(`[강사] ICE 상태: ${pc.iceConnectionState}`);
                 };
