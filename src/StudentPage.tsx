@@ -236,6 +236,11 @@ const StudentPage = () => {
       // WebRTC PeerConnection 새로 생성
       pcRef.current?.close();
       pcRef.current = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+
+      pcRef.current.oniceconnectionstatechange = () => {
+        console.log(`[학생] ICE 상태: ${pcRef.current?.iceConnectionState}`);
+      };
+      
       // 트랙 추가
       stream.getTracks().forEach(track => {
         pcRef.current!.addTrack(track, stream);

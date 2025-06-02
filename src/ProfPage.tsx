@@ -184,6 +184,10 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] 
                 });
                 
+                pc.oniceconnectionstatechange = () => {
+                    console.log(`[강사] ICE 상태: ${pc.iceConnectionState}`);
+                };
+                
                 pc.ontrack = (event) => {
                     console.log('[강사] ontrack 호출:', studentId, event.streams[0]);
                     updateStudentStream(studentId, event.streams[0]);
