@@ -247,6 +247,8 @@ const StudentPage = () => {
 
       pcRef.current.oniceconnectionstatechange = () => {
         console.log(`[학생] ICE 상태: ${pcRef.current?.iceConnectionState}`);
+        console.log(`[학생] ICE gathering 상태: ${pcRef.current?.iceGatheringState}`);
+        console.log(`[학생] 시그널링 상태: ${pcRef.current?.signalingState}`);
       };
 
       // 트랙 추가

@@ -202,6 +202,11 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
 
                 pc.onicecandidate = (event) => {
                     console.log('[강사] ICE candidate 생성됨:', event.candidate);  // 로그 찍기
+                    if (event.candidate) {
+                        console.log('[강사] ICE candidate 타입:', event.candidate.type);
+                        console.log('[강사] ICE candidate 프로토콜:', event.candidate.protocol);
+                        console.log('[강사] ICE candidate 주소:', event.candidate.address);
+                    }
                     if (event.candidate && rtcWsRef.current?.readyState === WebSocket.OPEN) {
                         rtcWsRef.current.send(JSON.stringify({
                             type: "candidate",
