@@ -60,6 +60,7 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
     const [studentStreams, setStudentStreams] = useState<{ [id: string]: MediaStream }>({}); // 학생 스트림 상태
     const videoRefs = useRef<{ [id: string]: HTMLVideoElement | null }>({}); // 비디오 요소 ref
     const streamsRef = useRef<{ [id: string]: MediaStream }>({});  // 스트림 참조를 위한 ref 추가
+    const [alertCooldowns, setAlertCooldowns] = useState<{ [studentId: string]: boolean }>({}); // 쿨다운 상태
 
     const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL;
 
@@ -129,25 +130,36 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
 
         wsRef.current = new WebSocket(`${WS_BASE_URL}/ws/prof`);
         
-        wsRef.current.onopen = () => setConnected(true);
+        wsRef.current.onopen = () => {
+            setConnected(true);
+        };
+        
         wsRef.current.onclose = () => setConnected(false);
         wsRef.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.type === 'student_data') {
-                setStudents(prev => ({
-                    ...prev,
-                    [data.student_id]: {
-                        student_id: data.student_id,
-                        emotion_results: data.emotion_results,
-                        concentration: data.concentration
+                setStudents(prev => {
+                    const isNew = !prev[data.student_id];
+                    const updated = {
+                        ...prev,
+                        [data.student_id]: {
+                            student_id: data.student_id,
+                            emotion_results: data.emotion_results,
+                            concentration: data.concentration
+                        }
+                    };
+                    // 학생이 새로 들어온 경우에만 10초 후 경고 박스 표시
+                    if (isNew) {
+                        setTimeout(() => {
+                            setVisibleAlertStates(prev2 => ({
+                                ...prev2,
+                                [data.student_id]: true
+                            }));
+                        }, 15000);
                     }
-                }));
-                // 집중도 경고 조건 예시 (예: concentration < 40)
-                if (data.concentration < 40) {
-                    setVisibleAlertStates(prev => ({ ...prev, [data.student_id]: true }));
-                }
+                    return updated;
+                });
             }
-            // 혹시 서버에서 type: 'warning' 메시지를 보내는 경우
             if (data.type === 'warning' && data.student_id) {
                 setVisibleAlertStates(prev => ({ ...prev, [data.student_id]: true }));
             }
@@ -289,8 +301,15 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                 message: message
             }));
             setAlertStates(prev => ({ ...prev, [studentId]: true }));
-            setVisibleAlertStates(prev => ({ ...prev, [studentId]: true }));
-            setTimeout(() => setAlertStates(prev => ({ ...prev, [studentId]: false })), 3000);
+            setVisibleAlertStates(prev => ({ ...prev, [studentId]: false })); // 즉시 숨김
+            setAlertCooldowns(prev => ({ ...prev, [studentId]: true })); // 쿨다운 시작
+
+            setTimeout(() => setAlertStates(prev => ({ ...prev, [studentId]: false })), 1000);
+
+            setTimeout(() => {
+                setAlertCooldowns(prev => ({ ...prev, [studentId]: false }));
+                setVisibleAlertStates(prev => ({ ...prev, [studentId]: true }));
+            }, 10000);
         } else {
             alert('서버와의 연결이 끊어졌습니다. 새로고침 해주세요.');
         }
@@ -326,7 +345,12 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                     {/* 상단 학생 웹캠 */}
                     <div className="students-row">
                         {studentArr.map((student, idx) => {
-                            const status = student ? getStatus(student.concentration) : "normal";
+                            // 경고 쿨다운 중이거나, 경고 박스가 아직 안 뜬 상태(10초 대기 중)이면 초록색
+                            const isCooldown = student && alertCooldowns[student.student_id] === true;
+                            const isWaitingForAlert = student && visibleAlertStates[student.student_id] !== true && alertCooldowns[student.student_id] !== true;
+                            const status = (isCooldown || isWaitingForAlert)
+                                ? "good"
+                                : (student ? getStatus(student.concentration) : "normal");
                             return (
                                 <div
                                     className="student-box"
@@ -378,7 +402,9 @@ const ProfPage = ({ onExit, connected: initialConnected }: ProfPageProps) => {
                 {/* 오른쪽 경고/알림 패널 */}
                 <div className="right-panel">
                     {studentArr.map((student, idx) =>
-                        student && visibleAlertStates[student.student_id] !== false ? (
+                        student &&
+                        visibleAlertStates[student.student_id] === true &&
+                        alertCooldowns[student.student_id] !== true ? (
                             <div className={`alert-box ${alertStates[student.student_id] ? 'green' : 'red'}`} key={student.student_id}>
                                 <div className="alert-header">
                                     <div className="FlagBox">
