@@ -147,7 +147,7 @@ const StudentPage = () => {
           }, "image/jpeg");
         };
         
-        interval = setInterval(sendFrame, 500); // 5000ms에서 2000ms로 변경
+        interval = setInterval(sendFrame, 300); // 5000ms에서 2000ms로 변경
       } catch (error) {
         console.error("웹캠/마이크 접근 오류:", error);
         alert("웹캠/마이크 접근에 실패했습니다.");

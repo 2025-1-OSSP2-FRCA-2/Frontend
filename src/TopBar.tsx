@@ -10,7 +10,7 @@ const TopBar = ({ connected }: TopBarProps) => {
     const [currentTime, setCurrentTime] = React.useState(new Date());
 
     // 2. 1분마다 시간 갱신
-    React.useEffect(() => {
+    React.useEffect(() => { 
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 60000);
